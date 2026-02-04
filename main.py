@@ -1,0 +1,42 @@
+from fastapi import FastAPI, Depends
+from models.model import TextGenerationRequest, GeneratedTextResponse
+from models.db_models import Base
+from contextlib import asynccontextmanager
+from ai.gemini import GeminiAI
+from database import get_db, engine
+import os
+from sqlalchemy.orm import Session
+# from scripts.load_tables import DatabaseSchemaApplier
+import logging
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO, format="%(levelname)s:%(name)s:%(message)s")
+
+# API_KEY = os.environ.get("GENAI_API_KEY", '')
+
+def load_db():
+    logger.info("Applying database schema...")
+    Base.metadata.create_all(bind=engine)
+    logger.info("Database schema applied.")
+
+def load_system_prompt() -> str:
+    with open(os.path.join("ai", "system_prompt.md"), "r") as file:
+        return file.read()
+
+# ai_model = GeminiAI(
+#     api_key=API_KEY,
+#     system_prompt=load_system_prompt()
+# )
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    load_db()
+    yield
+
+
+app = FastAPI(lifespan=lifespan)
+
+@app.get("/")
+def read_root():
+    return {" Welcome to the LLM Project API! "}
+
