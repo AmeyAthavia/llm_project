@@ -4,3 +4,6 @@ sqlalchemy
 uvicorn
 google-genai
 psycopg2-binary
+python-multipart
+pandas
+openpyxl
